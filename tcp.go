@@ -120,6 +120,7 @@ func tcpRemote(addr string, shadow func(net.Conn) net.Conn) {
 				logf("failed to get target address from %v: %v", c.RemoteAddr(), err)
 				// drain c to avoid leaking server behavioral features
 				// see https://www.ndss-symposium.org/ndss-paper/detecting-probe-resistant-proxies/
+				c.Write([]byte("404"))
 				_, err = io.Copy(ioutil.Discard, c)
 				if err != nil {
 					logf("discard error: %v", err)
@@ -133,8 +134,7 @@ func tcpRemote(addr string, shadow func(net.Conn) net.Conn) {
 				return
 			}
 			defer rc.Close()
-
-			logf("proxy %s <-> %s", c.RemoteAddr(), tgt)
+			logf("addr %s proxy %s <-> %s", addr, c.RemoteAddr(), tgt)
 			if err = relay(sc, rc); err != nil {
 				logf("relay error: %v", err)
 			}

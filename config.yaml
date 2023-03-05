@@ -1,0 +1,4 @@
+server:
+  port1 : 8001/IMAPASSWORD
+  port2 : 8002/IMAPASSWORD2
+  port3 : 8003/IMAPASSWORD3

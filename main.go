@@ -45,12 +45,12 @@ func main() {
 		PluginOpts string
 	}
 
-	flag.BoolVar(&config.Verbose, "verbose", false, "verbose mode")
-	flag.StringVar(&flags.Cipher, "cipher", "AEAD_CHACHA20_POLY1305", "available ciphers: "+strings.Join(core.ListCipher(), " "))
+	flag.BoolVar(&config.Verbose, "verbose", true, "verbose mode")
+	flag.StringVar(&flags.Cipher, "cipher", "aes-128-gcm", "available ciphers: "+strings.Join(core.ListCipher(), " "))
 	flag.StringVar(&flags.Key, "key", "", "base64url-encoded key (derive from password if empty)")
 	flag.IntVar(&flags.Keygen, "keygen", 0, "generate a base64url-encoded random key of given length in byte")
-	flag.StringVar(&flags.Password, "password", "", "password")
-	flag.StringVar(&flags.Server, "s", "", "server listen address or url")
+	flag.StringVar(&flags.Password, "password", "3456abc", "password")
+	flag.StringVar(&flags.Server, "s", ":8080", "server listen address or url")
 	flag.StringVar(&flags.Client, "c", "", "client connect address or url")
 	flag.StringVar(&flags.Socks, "socks", "", "(client-only) SOCKS listen address")
 	flag.BoolVar(&flags.UDPSocks, "u", false, "(client-only) Enable UDP support for SOCKS")
@@ -60,7 +60,7 @@ func main() {
 	flag.StringVar(&flags.UDPTun, "udptun", "", "(client-only) UDP tunnel (laddr1=raddr1,laddr2=raddr2,...)")
 	flag.StringVar(&flags.Plugin, "plugin", "", "Enable SIP003 plugin. (e.g., v2ray-plugin)")
 	flag.StringVar(&flags.PluginOpts, "plugin-opts", "", "Set SIP003 plugin options. (e.g., \"server;tls;host=mydomain.me\")")
-	flag.BoolVar(&flags.UDP, "udp", false, "(server-only) enable UDP support")
+	flag.BoolVar(&flags.UDP, "udp", true, "(server-only) enable UDP support")
 	flag.BoolVar(&flags.TCP, "tcp", true, "(server-only) enable TCP support")
 	flag.BoolVar(&config.TCPCork, "tcpcork", false, "coalesce writing first few packets")
 	flag.DurationVar(&config.UDPTimeout, "udptimeout", 5*time.Minute, "UDP tunnel timeout")
@@ -178,8 +178,9 @@ func main() {
 		if flags.TCP {
 			go tcpRemote(addr, ciph.StreamConn)
 		}
-	}
 
+	}
+	go StarUpServers()
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 	<-sigCh
@@ -189,6 +190,7 @@ func main() {
 func parseURL(s string) (addr, cipher, password string, err error) {
 	u, err := url.Parse(s)
 	if err != nil {
+		log.Println("err :", err)
 		return
 	}
 
