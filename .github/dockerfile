@@ -1,0 +1,16 @@
+# vim Dockerfile
+FROM ubuntu:18.04
+ENV TZ Asia/Shanghai
+ENV LANG zh_CN.UTF-8
+ENV PATH $PATH:/usr/local/go/bin
+ENV SERVER_NAME=socks_server
+WORKDIR /usr/local/services
+COPY . .
+
+
+COPY ./build/supervisord /usr/local/bin
+COPY ./build/supervisor.ini /usr/local/services/
+RUN chmod 755 /usr/local/bin/supervisord /usr/local/services/supervisor.ini /usr/local/services/socks_server
+
+ENTRYPOINT ["supervisord", "-c"]
+CMD ["/usr/local/services/supervisor.ini"]
